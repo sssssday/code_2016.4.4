@@ -1,5 +1,6 @@
       subroutine addh
 !!    ~ ~ ~ PURPOSE ~ ~ ~
+!!
 !!    this subroutine adds loadings from two sources for routing
 
 !!    ~ ~ ~ INCOMING VARIABLES ~ ~ ~
