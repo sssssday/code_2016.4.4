@@ -120,7 +120,7 @@
         integer :: ipart  !! plant tissue numbers
         real :: grleaf, grbrch, grlgwood, grfrootj, grfrootm, grcroot !! growth respiration
         real :: cprodfdy, eprodfdy(3) !! carbon and nutrient production (increase) in plant
-        real :: avn,avNH4,avNO3
+        real :: avn,avNH4,avNO3, avp
         real, dimension (1):: fgpp  !! variable used to transfer actural gpp in the restrp process. 
         real,dimension(2) :: favail
         integer :: eli
@@ -195,6 +195,7 @@
          avn = 0.
          avNH4 = 0.  
          avNO3 = 0.
+         avp = 0.
          fgpp = 0.
          favail = 0.
          treeNfix = 0.
@@ -280,6 +281,8 @@
 40      continue 
 50    continue
 
+ endif    
+
  !!! variable related to death rate muultiplier
  
  !! ... Change leaf death rate multiplier if you have floating C/E ratios.
@@ -295,7 +298,7 @@
  
         
 
-   endif    
+  
  !!         cosash = Cos(avz)
 !!        float cos60  = cos(1.04)
 !!        float cosash_dif = 0.537 + 0.025*flai
@@ -327,7 +330,8 @@
             count = count+1
             
             leafc(j) = lai / avg_slaf(idf)
-            leafn(j) = leafc (j)/ fcn_leafminf(idf)
+            eleaf(j,N) = leafc (j)/ fcn_leafminf(idf)
+            eleaf(j,P) = eleaf(j,N) / 10. !! change later, need to set fcp ratio for each pft
         end if
 
    
@@ -598,7 +602,7 @@
 
 
                
-        print*, 'f_pgpp(j)=', f_pgpp(j)
+        !! print*, 'f_pgpp(j)=', f_pgpp(j)
         if (f_pgpp(j)<0.0001) go to 1099
        
        !!tleafc = leafc(j)
@@ -683,12 +687,13 @@
         do lyr = 1, tlaypgswat
             avNO3 = avNO3 + sol_no3(lyr,j)/10. !conversion from kg/ha to g/m2
             avNH4 = avNH4 + sol_nh3(lyr,j)/10. !conversion from kg/ha to g/m2
+            avp = avp + sol_solp(lyr,j)/10.
         end do
 
         avn = avNH4 + avNO3;
         
-        availm(j,1) = avn  
-                
+        availm(j,N) = avn  
+        availm(j,P) = avp       
         !calculate maximum water potential (all layers)
         mrspweff = maxswpot(tlaypgswat) 
                     
@@ -753,18 +758,15 @@
           
           
                   
-        if (carbostg(j)> f_mr(j)) then 
-            carbostg(j) = carbostg(j) -  f_mr(j) 
-        else 
+        if (carbostg(j)< f_mr(j))  f_mr(j) = carbostg(j)
         
-            f_mr(j) = carbostg(j)
-            
             carbostg(j) = carbostg(j) -  f_mr(j) 
-        endif
         
+           
+           
         csrsnk(j) = csrsnk(j) + f_mr(j) 
         
-        cal_temp(1)=  f_mr(j)
+       
 !!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      
 !!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 
@@ -809,7 +811,7 @@
 
       rimpct = rtimp(riint, rictrl, frootjc(j)+frootmc(j)) !root impact on 
 
-    !!f_pgpp(j) = 100.
+
     if (decidgrow) then
     !! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXcheck should calculate f_gpp based on f_pgpp here   because in daycent actural gpp is calcualted twic, consider to further change this later
                call restrp(elimit, nelem, availm, ccefor, 2, tree_cfrac,        &
@@ -819,7 +821,7 @@
     !! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     !onlyc checked fine root and leaf nutrient constraints.
     
-      print*, "cprodfdy0=",cprodfdy
+     !! print*, "cprodfdy0=",cprodfdy
        
        
      if (decidgrow.and.cprodfdy>0.) then
@@ -835,7 +837,7 @@
 !!... Calculate how much of the carbon the roots use
 
  !! here I replace cprodfdy with gpp
-        cprodfLeft = cprodfdy - (cprodfdy * tree_cfrac(FROOT))   !! how this fraction was calculated
+        cprodfLeft = cprodfdy - (cprodfdy * tree_cfrac(FROOT))   
 
 !!... Calculate how much of the carbon the leaves use, we allocate leaves
 !!... up to a optimal LAI
@@ -904,9 +906,9 @@
     
     !! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     
-      print*, "cropdfy2 = ", cprodfdy
+     
         
-         !! fixn = treeNfix    
+       
           
            f_gpp(j)= cprodfdy
            carbostg(j) = carbostg(j) + f_gpp(j)
@@ -993,7 +995,7 @@
         
        
         
-!!   n inputs to plant biomass        
+!!   nutrient inputs to plant biomass        
 !!    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  
 
      !! calculate uptake ratio of each tissue
@@ -1121,13 +1123,25 @@
                 tno3nh3 = sol_no3(lyr,j)/10.+ sol_nh3(lyr,j)/10.
                 fno3 = sol_no3(lyr,j)/10./ tno3nh3
                 fnh3 = 1.0 - fno3
+                
+              if (iel .eq. P) then  
 
               calcup = uptake(ESOIL,iel)*tno3nh3 * fsol/availm(j,iel)
+              
+              else
+              
+              calcup = uptake(ESOIL,iel)*sol_solp(lyr,j)/10./availm(j,iel)
+              
+              end if
 !!.............. Leaves
               amt = calcup * euf(LEAF)
               if (iel .eq. N) then
                 sol_no3(lyr,j) = sol_no3(lyr,j) - 10. * amt*fno3  !! check if that is l or one
                 sol_nh3(lyr,j) = sol_nh3(lyr,j) - 10. * amt*fnh3
+                
+              else 
+              sol_solp(lyr,j) = sol_solp(lyr,j) - 10. * amt
+                
               endif
               
               eleaf(j,iel) = eleaf(j,iel) + amt
@@ -1140,7 +1154,11 @@
               if (iel .eq. N) then
                 sol_no3(lyr,j) = sol_no3(lyr,j) - 10. * amt*fno3  !! check if that is l or one
                 sol_nh3(lyr,j) = sol_nh3(lyr,j) - 10. * amt*fnh3
+              else 
+              sol_solp(lyr,j) = sol_solp(lyr,j) - 10. * amt
+                
               endif
+              
               
               efrootj(j,iel) = efrootj(j,iel) + amt
               !!eupprt(FROOT,iel) = eupprt(FROOT,iel) + amt
@@ -1151,6 +1169,8 @@
               if (iel .eq. N) then
                 sol_no3(lyr,j) = sol_no3(lyr,j) - 10. * amt*fno3  !! check if that is l or one
                 sol_nh3(lyr,j) = sol_nh3(lyr,j) - 10. * amt*fnh3
+              else 
+              sol_solp(lyr,j) = sol_solp(lyr,j) - 10. * amt                
               endif
               
               efrootm(j,iel) = efrootm(j,iel) + amt
@@ -1186,6 +1206,8 @@
               if (iel .eq. N) then
                 sol_no3(lyr,j) = sol_no3(lyr,j) - 10. * namt*fno3  !! check if that is l or one
                 sol_nh3(lyr,j) = sol_nh3(lyr,j) - 10. * namt*fnh3
+              else 
+                sol_solp(lyr,j) = sol_solp(lyr,j) - 10. *namt
               endif
 !!.............. Large wood
               namt = 0.0
@@ -1218,6 +1240,8 @@
               if (iel .eq. N) then
                 sol_no3(lyr,j) = sol_no3(lyr,j) - 10. * namt*fno3  !! check if that is l or one
                 sol_nh3(lyr,j) = sol_nh3(lyr,j) - 10. * namt*fnh3
+              else 
+                sol_solp(lyr,j) = sol_solp(lyr,j) - 10. *namt                
               endif
 !!.............. Coarse roots
               namt = 0.0
@@ -1248,6 +1272,8 @@
               if (iel .eq. N) then
                 sol_no3(lyr,j) = sol_no3(lyr,j) - 10. * namt*fno3  !! check if that is l or one
                 sol_nh3(lyr,j) = sol_nh3(lyr,j) - 10. * namt*fnh3
+              else 
+                sol_solp(lyr,j) = sol_solp(lyr,j) - 10. *namt    
               endif
             endif
 100       continue

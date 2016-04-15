@@ -12,8 +12,8 @@
 !!    need to check how to add one dimension to these arrang              
       integer   tnelem, nparts
       real      a2drat(MAXIEL), tavailm(1,MAXIEL), 
-     &          cerat(2,nparts,MAXIEL),
-     &          cfrac(nparts), cprodl, elimit, eprodl(MAXIEL),
+     &          cerat(2,FPARTS,MAXIEL),
+     &          cfrac(FPARTS), cprodl, elimit, eprodl(MAXIEL),
      &          plantNfix, potenc, relyld, rimpct, snfxmx,
      &          storage(1:MAXIEL), uptake(4,MAXIEL)
      
@@ -112,6 +112,7 @@ c        if ((availm(iel) .le. 1E-10) .and. (snfxmx .eq. 0.0) .and.
         do 60 ipart = 1, nparts
           if (cerat(IMAX,ipart,iel) .eq. 0.0) then
             write(*,*) 'Error is restrp, cerat(IMAX,ipart,iel) = 0.0'
+             
             STOP
           endif
           if (cerat(IMIN,ipart,iel) .eq. 0.0) then

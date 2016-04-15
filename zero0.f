@@ -689,7 +689,7 @@
 !!  auto matic fertlizer
       aufert = 0. 
       co2crs = 0.
-      nelem = 1
+      nelem = 2
 
 !!... CRPSYS, FORSYS, SAVSYS is an enumeration for the system
       CRPSYS = 1

@@ -530,7 +530,8 @@
               latc_d(j),emitc_d(j), grainc_d(j), surfqc_d(j), stoverc_d(j),         &
               f_gpp(j),f_npp(j), carbostg(j), csrsnk(j),    &
               leafc(j),brchc(j),largwc(j),frootjc(j),frootmc(j),csrootc(j),  &
-              seedc(j),leafn(j),brchn(j),largwn(j),frootjn(j),frootmn(j),csrootn(j),seedn(j),   &
+              leafn(j),brchn(j),largwn(j),frootjn(j),frootmn(j),csrootn(j),   &
+              leafp(j),brchp(j),largwp(j),frootjp(j),frootmp(j),csrootp(j),   &
               foc_d(j),rspc_d(j),tot_mass,tot_cmass,tot_nmass,                      &
               tot_LSC,tot_LMC,tot_HSC,tot_HPC,tot_BMC,                              &
               bio_ms(j)*0.42, rwt(j), tot_no3_nh3,wdntl,etday,tillage_factor(j),    &
@@ -547,5 +548,5 @@
 1000  format (a4,i5,1x,a5,a4,i5,1x,i4,1x,i4,e10.5,66f10.3,1x,e10.5,1x,e10.5,8e10.3,2f10.3,1x,i4)
 1001  format (a4,i5,1x,a5,a4,i5,1x,i4,1x,i4,e10.5,66f10.3,1x,e10.5,1x,e10.5,8e10.3,2f10.3)
 9000  format(i4,i4,i2,i8,21(f16.3))
-9001  format(i4,i4,i8,78(f16.6))
+9001  format(i4,i4,i8,82(f16.6))
       end
