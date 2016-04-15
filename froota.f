@@ -127,7 +127,7 @@ c        h2oeff = frfrac(1) + ((frfrac(2) - frfrac(1)) * (1.0 - h2ogef))
       if (ffroota .gt. 1.0) then
       ffroota = 1.0
       endif 
-      print*, "haha"
+      !! print*, "haha"
       
       return 
       end

@@ -715,8 +715,9 @@
      &'stoverc','GPP','NPP','Carbostg', 'Csrsnk',
      &'Leafc','brchc','largwc','Frootjc',
      &'Frootmc','Csrootc',
-     &'Seedc','Leafn','brchn','Largwn','Frootjn',
-     &'Frootmn','Csrootn','Seedn',
+     &'Leafn','brchn','Largwn','Frootjn',
+     &'Frootmn','Csrootn', 'Leafp','brchp','Largwp','Frootjp',
+     &'Frootmp','Csrootp',
      &'foc','rspc','tot_mass','tot_cmass','tot_nmass',
      &'tot_LSC','tot_LMC','tot_HSC','tot_HPC','tot_BMC','Biom_C','rwtf',
      &'tot_no3_nh3','wdntl', 
@@ -740,5 +741,5 @@
  1000 format (a)
  1001 format (i4)
  5102 format (3a5,30a15)
- 5104 format (a4,a4,a8,77a16)
+ 5104 format (a4,a4,a8,82a16)
       end

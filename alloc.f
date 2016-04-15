@@ -48,7 +48,7 @@
       real :: riint, rictrl
       !!real,dimension(:) :: tree_a2drat
       real,dimension(2) :: favail
-      real :: maxrootf
+      
       real, dimension(10) :: rwcf
       real, dimension(3) :: ta2drat
       real :: sol_thick(sol_nly(ihru))
@@ -82,7 +82,7 @@
        end do 
 
 !! ... Use tree specific favail(1) value
-      maxrootf = SFAVAIL2f(idf)
+      favail(1) = SFAVAIL2f(idf)
 
 !! ... Estimate the fraction of carbon going to the roots
       fracrc = (TFRTCWf(idf,1)+TFRTCWf(idf,2)+TFRTCNf(idf,1)+
@@ -99,7 +99,7 @@
    !! only consider N and P currently. 1: N; 2: P
         iel = 1
         
-        favail(1) = SFAVAIL2f(idf)
+       !! favail(1) = SFAVAIL2f(idf)
         
         !! calculation of favail(2) based on the first soil layer
         
@@ -130,7 +130,7 @@
 !!  .. Calculate soil available nutrients, based on a maximum fraction
 !!  .. (favail) and the impact of root biomass (rimpct), adding storage.
       do 45 iel = 1, nelem
-        eavail(iel) = (availm(j,iel) * maxrootf * rimpct) + 
+        eavail(iel) = (availm(j,iel) * favail(iel) * rimpct) + 
      &                 forstg(j,iel)
 45    continue
 
@@ -157,6 +157,8 @@
         demand = demand + rootprod * (1.0 / CERFORf(idf,IMIN,FROOT,iel))
          if (iel .eq. 1) then
         totale = eavail(iel) + fixn
+         else
+        totale = eavail(iel) 
          endif
 
      !! New calculation -mdh 5/10/01
@@ -170,7 +172,8 @@
    !! calculate tree water stress  !! find the wetest soil layer
       maxrwcf = -9999
       do 140 ii = 1, swatlyr
-           rwcf(ii) = (sol_st(ii,j)*0.1) / (sol_thick(ii)*0.1)  !! relative wetness
+           rwcf(ii) = ((sol_st(ii,j)+sol_wpmm(ii,j)) *0.1) 
+     &       / (sol_thick(ii)*0.1)  !! relative wetness
         if (rwcf(ii) .gt. maxrwcf) then
           maxrwcf = rwcf(ii)
         endif

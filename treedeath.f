@@ -342,17 +342,17 @@ c        call csched(ctodie, cisotf, 1.0,
       
       
       leafn(j) =  eleaf(j,1)
-      !!leafp(j) = eleaf(j,2)
+      leafp(j) = eleaf(j,2)
       brchn(j)  = ebrch(j,1)
-      !!brchp(j)  = ebrch(j,2)
+      brchp(j)  = ebrch(j,2)
       largwn(j)  = elargw(j,1)
-      !!largwp(j)  = elargw(j,2)
+      largwp(j)  = elargw(j,2)
       frootjn(j)  =  efrootj (j,1) 
-      !!frootjp(j)  =  efrootj (j,2) 
+      frootjp(j)  =  efrootj (j,2) 
       frootmn(j)  =  efrootm (j,1) 
-      !!frootmp(j)  =  efrootm (j,2) 
+      frootmp(j)  =  efrootm (j,2) 
       csrootn(j)  =  ecsroot(j,1)
-      !!csrootp(j)  =  ecsroot(j,2)
+      csrootp(j)  =  ecsroot(j,2)
 
       return
       end

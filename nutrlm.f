@@ -67,15 +67,15 @@
         
        
 
-c ....... DEMAND based on the maximum E/C ratio.
+!! ...... DEMAND based on the maximum E/C ratio.
           demand = cprodl * maxec(iel)
           totale = eavail(iel)
 
-c ....... New calculation -mdh 5/10/01
+!! ...... New calculation -mdh 5/10/01
           a2drat(iel) = min(1.0, totale / demand)
           a2drat(iel) = max(0.0, a2drat(iel))
 
-c ....... New E/C ratios by part based on E available.
+!! ...... New E/C ratios by part based on E available.
           if (totale .gt. demand) then
             do 20 ipart = 1, nparts
               ecfor(ipart,iel) = maxeci(ipart,iel)
@@ -93,12 +93,12 @@ c ....... New E/C ratios by part based on E available.
 30          continue
           endif
 
-c ....... Initialize local variables to zero
+!! ...... Initialize local variables to zero
           cpbe(iel) = 0.0
 
-c ....... Total potential production with nutrient limitation
+!! ...... Total potential production with nutrient limitation
           do 40 ipart = 1, nparts
-c ......... Calculate the average nutrient content
+!! ........ Calculate the average nutrient content
             if (ipart .lt. 3) then
               cpbe(iel) = cpbe(iel) +
      &                    ((cfrac(ipart) * ecfor(ipart,iel)) / 2.5)
@@ -107,19 +107,19 @@ c ......... Calculate the average nutrient content
      &                    ((cfrac(ipart) * ecfor(ipart,iel)) / 2.0)
             endif
 40        continue
-c ....... Calculate average E/C
+!! ...... Calculate average E/C
           cpbe(iel) = cpbe(iel) * ctob
           if (cpbe(iel) .eq. 0.0) then
             write(*,*) 'Error in nutrlm, cpbe(iel) = 0.0'
             STOP
           endif
-c ....... Calculate potential production for the element with nutrient limitation
+!! ...... Calculate potential production for the element with nutrient limitation
           cpbe(iel) = totale / cpbe(iel)
 
-c ....... Automatic fertilization, AKM 18/8/2000
+!! ...... Automatic fertilization, AKM 18/8/2000
           if ((taufert .gt. 0).and.(cpbe(iel)/cprodl .lt. taufert)) then
             cpbe(iel) = cprodl * taufert
-c ......... Mathcad equations
+!! ........ Mathcad equations
             sum = 0.0
             do ipart = 1, nparts
               sum = sum + cfrac(ipart) *
