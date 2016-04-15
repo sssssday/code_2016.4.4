@@ -904,9 +904,7 @@
     
    call wooddec (tswatlyr(j))
    
-   print*, "woodc1 = ", woodc(j,1), "woode1N = ", woode(j,1,1)
-   print*, "woodc2 = ", woodc(j,2), "woode2N = ", woode(j,2,1)
-   print*, "woodc3 = ", woodc(j,3), "woode3N = ", woode(j,3,1)
+
 
     !write (*,*) iyr,i, DeltaBMC
     !write (*,*) iyr,i, wdntl

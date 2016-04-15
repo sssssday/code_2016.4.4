@@ -892,7 +892,7 @@
 !!          STOP
         endif
         
-        print*, "cropdfy1 = ", cprodfdy
+      
         
         cprodfdy = 0.
     !! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -1124,7 +1124,7 @@
                 fno3 = sol_no3(lyr,j)/10./ tno3nh3
                 fnh3 = 1.0 - fno3
                 
-              if (iel .eq. P) then  
+              if (iel .eq. N) then  
 
               calcup = uptake(ESOIL,iel)*tno3nh3 * fsol/availm(j,iel)
               
@@ -1773,7 +1773,7 @@
                          + (2.*a*gmin+b)*sqrt(e)/(4.*a)                           &
                          + (b*b - 4.*a*c)*log((2.*a*gn+b+2.*sqa*d)/               &
                          (2.*a*gmin+b+2.*sqa*e))/(8.0*a**1.5))
-                    print*, "hahaha"
+                  
 
                  end if
          end if
