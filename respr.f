@@ -102,7 +102,7 @@ c ...
 !!        if (iel .eq. N) then
 !!          newminrl = newminrl + mnrflo
  !!       endif
-      print*, "aaaaa"
+      
 10    continue
  
       return
