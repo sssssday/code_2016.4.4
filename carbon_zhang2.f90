@@ -518,6 +518,7 @@
               PN8=HSCTP*ASP*NCHP                !Slow to Passive
               PN9=HPCTP*APX*NCBM                !Passive to Biomass
  
+              !
               !PN1=LSLNCTP*A1*NCBM
               !PN2=.7*LSLCTP*NCHS
               !PN3=LMCTP*A1*NCBM

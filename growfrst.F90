@@ -474,10 +474,8 @@
            prdis(lyr) = 0.5*(exp(-raf(idf)*sol_z(lyr-1,j)/1000.)+exp(-rbf(idf)*sol_z(lyr-1,j)/1000.)-exp(-raf(idf)*sol_z(lyr,j)/1000.) &
                 -exp(-rbf(idf)*sol_z(lyr,j)/1000.))
         else
-           prdis(lyr) = 0.5*(exp(-raf(idf)*sol_z(lyr-1,j)/1000.)+exp(-rbf(idf)* sol_z(lyr-1,j)/1000.))
-       
-        end if 
-       
+           prdis(lyr) = 0.5*(exp(-raf(idf)*sol_z(lyr-1,j)/1000.)+exp(-rbf(idf)* sol_z(lyr-1,j)/1000.))       
+        end if        
         rdis(lyr) = prdis(lyr)
        end do
        
@@ -485,9 +483,7 @@
             tmoist = tmoist + rdis(lyr)* sol_w(lyr)        
        end do
        
-       if (tmoist < 1.e-10)tmoist = 1.e-10
-     
-          
+       if (tmoist < 1.e-10)tmoist = 1.e-10  
 
          f_moist(j) = tmoist
 
