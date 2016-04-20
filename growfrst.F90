@@ -233,6 +233,7 @@
          iel = 0
          toler = 0.000001
         
+        !need to move to upper level cycle later
         call pweather !! P parent material weathering
         
         
@@ -247,12 +248,12 @@
 
         cossh = sin(tdtor)*sin(dtor*sub_lat(j)) +cos(tdtor)*cos(dtor*sub_lat(j))
         cossh = min(cossh, 0.99999)
-        sunhight = acos(cossh)
+        sunhight = acos(cossh) !http://www.volker-quaschning.de/articles/fundamentals1/index_e.php
        
         
         print*,dofy
 
-   if ( dofy ==1)then 
+    if ( dofy ==1)then 
       !! processes only occure once every year   
        ccefor = 0.
        growday = 0 
@@ -264,6 +265,8 @@
 !! ... Direct CO2 effects only C/E ratio of leaves.
          !!nelem = 1
          !idf plant ID, IMIN, IMAX C:E ratio
+         !first dimension of co2cce: 2 represents forest
+         !CERFORf(idf,IMIN,LEAF,iel): C:E ration
       do 30 iel = 1, nelem
         ccefor(IMIN,LEAF,iel) = CERFORf(idf,IMIN,LEAF,iel) * co2cce(2,IMIN,iel)
                            
@@ -281,11 +284,11 @@
 40      continue 
 50    continue
 
- endif    
+    endif    !end dofy
 
- !!! variable related to death rate muultiplier
+    !!! variable related to death rate muultiplier
  
- !! ... Change leaf death rate multiplier if you have floating C/E ratios.
+    !! ... Change leaf death rate multiplier if you have floating C/E ratios.
       if (ccefor(IMIN,LEAF,N) .ne. ccefor(IMAX,LEAF,N)) then
         if (leafc(j) .gt. 0) then
           lfncon = eleaf(j,N) / leafc(j)
@@ -323,6 +326,7 @@
 !1        float sscater                   !! (W/m2) scattered solar radiation by sun leaf
        
         lai = leafc(j) * avg_slaf(idf) !!temporarill closed and changed to the maxlai
+        !avg_slaf(idf) specific LAI.
          !!if (lai>11.0)lai = 11.
        !!lai = MAXLAIf(idf) 
         if (lai < 0.0001) then
@@ -422,12 +426,12 @@
             soildep   = soildep + sol_thick(lyr)
             solm_potsat(lyr)= -10. * (10**(1.88-0.0131*sol_sand(lyr,j)))
             sol_sita_sat(lyr) = 0.489-0.00126*sol_sand(lyr,j)
-            sol_wet(lyr) = sol_st(lyr,j)/sol_thick(lyr)/sol_sita_sat(lyr)
-        if (sol_wet(lyr)<0.01) sol_wet(lyr)=0.01
-
-            fclay(lyr)= 2.91 + 0.159 * sol_clay(lyr,j)
-        
-        end do
+            
+            sol_wet(lyr) = (sol_st(lyr,j)+sol_wpmm(lyr,j))/sol_thick(lyr)/sol_sita_sat(lyr) !Zhang modified (sol_st(lyr,j)+sol_wpmm(lyr,j))
+            
+            if (sol_wet(lyr)<0.01) sol_wet(lyr)=0.01
+            fclay(lyr)= 2.91 + 0.159 * sol_clay(lyr,j)            
+        end do ! end lyr
 
         !!soil_sand = soil_sand / sol_nly(j)
         !!soil_clay = soil_clay / sol_nly(j)
@@ -437,49 +441,48 @@
        !!sol_wet = sol_sita / sol_sita_sat  !! here ice in soil is not considered
 
    
-!!         calculate fcaly
+       !!calculate fcaly
     
-!!        calculate matrix potential
+       !!calculate matrix potential
        
-       do l = 1, sol_nly(j)
-            if (sol_wet(l)>1.)sol_wet(l)=1.
+       do lyr = 1, sol_nly(j)
+            if (sol_wet(lyr)>1.)sol_wet(lyr)=1.
        
-            solm_pot(l) = solm_potsat(l) * (sol_wet(l)**(-fclay(l)))
+            solm_pot(lyr) = solm_potsat(lyr) * (sol_wet(lyr)**(-fclay(lyr)))
 
-            if(solm_pot(l) < -1.e8) solm_pot(l) = -1.e8
+            if(solm_pot(lyr) < -1.e8) solm_pot(lyr) = -1.e8
         
-            sol_w (l) = (-150000. - solm_pot(l))/(-150000. - solm_potsat(l))
-            if(sol_w(l) <= 0.) sol_w(l) = 0.
-            if(sol_w(l) > 1.) sol_w(l) = 1.
+            sol_w (lyr) = (-150000. - solm_pot(lyr))/(-150000. - solm_potsat(lyr))
+            if(sol_w(lyr) <= 0.) sol_w(lyr) = 0.
+            if(sol_w(lyr) > 1.) sol_w(lyr) = 1.
         
        end do
       
-!!     calcualte fmoist
+       !!calcualte fmoist
 
 
         
 
 
-!!     calculate root distribution
+      !!calculate root distribution
       tmoist = 0.
 
-       do l = 2, sol_nly(j)
+       do lyr = 2, sol_nly(j)
        
-        if (l<sol_nly(j)) then 
-           prdis(l) = 0.5*(exp(-raf(idf)*sol_z(l-1,j)/1000.)+exp(-rbf(idf)*sol_z(l-1,j)/1000.)-exp(-raf(idf)*sol_z(l,j)/1000.) &
-                -exp(-rbf(idf)*sol_z(l,j)/1000.))
+        if (lyr<sol_nly(j)) then 
+           !prdis: percentage root distribution for a specific layer
+           prdis(lyr) = 0.5*(exp(-raf(idf)*sol_z(lyr-1,j)/1000.)+exp(-rbf(idf)*sol_z(lyr-1,j)/1000.)-exp(-raf(idf)*sol_z(lyr,j)/1000.) &
+                -exp(-rbf(idf)*sol_z(lyr,j)/1000.))
         else
-           prdis(l) = 0.5*(exp(-raf(idf)*sol_z(l-1,j)/1000.)+exp(-rbf(idf)* sol_z(l-1,j)/1000.))
+           prdis(lyr) = 0.5*(exp(-raf(idf)*sol_z(lyr-1,j)/1000.)+exp(-rbf(idf)* sol_z(lyr-1,j)/1000.))
        
         end if 
        
-            rdis(l) = prdis(l)
+        rdis(lyr) = prdis(lyr)
        end do
        
-       do l = 2, sol_nly(j)
-        
-            tmoist = tmoist + rdis(l)* sol_w(l)
-        
+       do lyr = 2, sol_nly(j)        
+            tmoist = tmoist + rdis(lyr)* sol_w(lyr)        
        end do
        
        if (tmoist < 1.e-10)tmoist = 1.e-10
@@ -505,10 +508,8 @@
         ft = 1.0- 0.0016* ( (toptdf(idf) - tmpav(j))*(toptdf(idf) - tmpav(j)))
         ft = max(ft,0.0001)
 
-!!        /* freezing night minimum temperature multiplier */
-
-       
-        if(vpd < vpd_openf(idf)) then
+!!        /* freezing night minimum temperature multiplier */       
+        if(vpd < vpd_openf(idf)) then !vpd is used here without declaration. Is it a global variable?
 
             fvpdd = 1
 
@@ -531,8 +532,8 @@
         sungs = max(gmaxf(idf)*fsunppdf*fvpdd*tmoist*fco2*ft,gmaxf(idf))
        
         shadegs = max(gmaxf(idf)*fshadeppdf*fvpdd*tmoist*fco2*ft,gmaxf(idf))
-!!      calculate air pressure
-
+        
+       !!calculate air pressure
        prfr = 0.0065        !! (m3 Pa mol-1 K-1) gas law constant */
        prfg = 9.80665         !! (m s-2) standard gravitational accel. */
        prfp= 101325.0         !! (Pa) standard pressure at 0.0 m elevation */
@@ -547,9 +548,7 @@
         air_pre = prfp * (pr_v1) ** pr_v2
         po2 = 0.209 * air_pre
         
-!!     calculate N limitation
-
-      
+        !!calculate N limitation      
         sunlai =2.*cos(sunhight)*(1.-exp(-0.5*omgaf(idf)* lai/cos(sunhight)))
         shalai = MAXLAIf(idf) - sunlai
         
@@ -562,7 +561,7 @@
         sunl_cn = leaf_cn (biomass, leafn(j), lai, sunlai, j, dumsun)
         shal_cn = leaf_cn (biomass, leafn(j), lai, sunlai, j, dumsha)
 
-     !!   n33 = leafc(j) +brchc(j) + largwc(j) + lgrootc(j) + frootjc(j)+ frootmc(j) + seedc(j) 
+        !!n33 = leafc(j) +brchc(j) + largwc(j) + lgrootc(j) + frootjc(j)+ frootmc(j) + seedc(j) 
         
          if(sunl_cn < fcn_leafminf (idf)) then
             fnsun = 1.
@@ -570,7 +569,7 @@
             fnsun = exp(-0.08*(sunl_cn - fcn_leafminf(idf)))
          end if
          
-          !!if (fnsun<0.5)fnsun=0.5  !! change later
+         !!if (fnsun<0.5)fnsun=0.5  !! change later
          if(shal_cn < fcn_leafminf(idf)) then
             fnsha = 1.
          else
@@ -581,29 +580,25 @@
           !!if (fnsha<0.5)fnsha=0.5
          !! print*, fnsun
 
-!!        photosynthesis
-       tdumy = 0.0
+         !!photosynthesis
+         tdumy = 0.0
       
 
         photo_sun = photos(sungs, tdumy,tmpav(j),tmoist, po2, co2(hru_sub(j)), fnsun, ppfd_sunlai_daily, air_pre, j)
      
        
         photo_shade = photos(shadegs, tdumy,tmpav(j),tmoist, po2, co2(hru_sub(j)), fnsha, ppfd_shadelai_daily, air_pre, j)
-  !!
-      !! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX should calculate f_pgpp here
+
+       !!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX should calculate f_pgpp here
      
         f_pgpp(j) =  (sunlai*photo_sun + shalai*photo_shade) * 12.011e-6 * dayl(j) * 3600.  !! umol/m2 leaf/s -> gC/day, dayl: day lenghten in hour
        
         !write(*,*) leafn(j), brchn(j), largwn(j), lgrootn(j), frootjn(j),frootmn(j), seedn(j)
-        
-
-
-
 
 
                
         !! print*, 'f_pgpp(j)=', f_pgpp(j)
-        if (f_pgpp(j)<0.0001) go to 1099
+        if (f_pgpp(j)<0.0001) return !go to 1099
        
        !!tleafc = leafc(j)
        !!tbrchc = brchc(j)
@@ -651,32 +646,21 @@
     if (mrspteff > 1.0)mrspteff = 1.0
     if (mrspteff < 0.0)mrspteff = 0.0
     
-   !! soil moisture effect on maintenance respiration 
+    !!soil moisture effect on maintenance respiration 
    
-        dsoilthickness (1:10) = (/100.0, 200.0, 150.0, 150.0, 300.0, 300.0, 300.0, 300.0, 300.0, 300.0/) !! need to check if values are assigned correctly.
+    dsoilthickness (1:10) = (/100.0, 200.0, 150.0, 150.0, 300.0, 300.0, 300.0, 300.0, 300.0, 300.0/) !! need to check if values are assigned correctly.
     
     
     tlaypgdth = 0.0
-    
-     
-    
-
     do ilyer = 1, TLAYPGf(idf)   !! check if value should plus one
-  
        tlaypgdth = tlaypgdth + dsoilthickness(ilyer)
-        
     end do
-    
-    
-    
     
     tlaypgswat = 0
     soildep = 0.
     
     do lyr = 1, sol_nly(j)
-
        soildep   = sol_z(lyr,j)
-       
        if (soildep > tlaypgdth) exit  !! test this later
     end do
     
@@ -701,15 +685,15 @@
         if (mrspweff < 0.0)mrspteff = 0.0
         
          !! set mimium value for the carbon storage pool, carbon enters this pool then allocated to tissues. (g/m2)
-          if (carbostg(j) .lt. 15.0) then
-              !
+          if (carbostg(j) .lt. 15.0) then   
+              !Here csrsnk refers to the general atmospheric CO2 stock           
               csrsnk(j) = csrsnk(j)- (15.0 - carbostg(j))
               carbostg(j) = 15.0              
           end if    
               
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
-  
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+    !!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+      
+    !!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
     !! calculate the maintence reducing factor based on the size of carbon storage pool
   
        !! call lacalc(lai, fbrchc, rlwodc, maxlai, klai) we do not use this method since we calculate lai directly from leaf carbon
@@ -756,48 +740,30 @@
         !!  largwc(j) = largwc(j) - mrlgwood
         !!  csrootc(j) = csrootc(j) - mrcroot
           
-          
                   
         if (carbostg(j)< f_mr(j))  f_mr(j) = carbostg(j)
         
-            carbostg(j) = carbostg(j) -  f_mr(j) 
-        
-           
-           
+        carbostg(j) = carbostg(j) -  f_mr(j)            
         csrsnk(j) = csrsnk(j) + f_mr(j) 
         
        
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
-
-                        
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
-  
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~         
-
-  
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      
-!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+    !!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~      
+    !!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
     !! carbon allocation
     !! get the alloction fraction for each tissuse
-       !! determine if day hours are increasing or decreasing
-          cday = iida
-          pday = cday -1
-          
-          if (pday<1)pday = 365   !! check how to account for leap year
-          
-          cdlength  = daylenth (cday, j) !current
-          
-          pdlength = daylenth (pday, j) !pcurrent
-          
-          
+      !! determine if day hours are increasing or decreasing
+      cday = iida
+      pday = cday -1
+      
+      if (pday<1)pday = 365   !! check how to account for leap year
+      
+      cdlength  = daylenth (cday, j) !current          
+      pdlength = daylenth (pday, j) !pcurrent
           
         if (cdlength .lt. pdlength) then
-                 hrsinc = .FALSE.
+            hrsinc = .FALSE.
         else if (cdlength .gt. pdlength) then
-          hrsinc = .TRUE.
+            hrsinc = .TRUE.
         endif
        !! get growing stage indicator
        
@@ -1032,7 +998,7 @@
             !!if(forstg(j,iel)<0.001)  forstg(j,iel) = 0.001
             !!call nfix
            !! print*, "fixed N = ", fixn
-         if (iel .eq. N ) forstg(j,iel) = forstg(j,iel) + fixn
+          if (iel .eq. N ) forstg(j,iel) = forstg(j,iel) + fixn
         
           if (forstg(j,iel) .gt. 0.0) then
             amt = uptake(ESTOR,iel) * euf(LEAF)
@@ -1100,7 +1066,7 @@
             endif
           endif
 
-      !!  up  take from soil
+      !!  uptake from soil
       !! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         
@@ -1137,11 +1103,9 @@
               amt = calcup * euf(LEAF)
               if (iel .eq. N) then
                 sol_no3(lyr,j) = sol_no3(lyr,j) - 10. * amt*fno3  !! check if that is l or one
-                sol_nh3(lyr,j) = sol_nh3(lyr,j) - 10. * amt*fnh3
-                
+                sol_nh3(lyr,j) = sol_nh3(lyr,j) - 10. * amt*fnh3                
               else 
-              sol_solp(lyr,j) = sol_solp(lyr,j) - 10. * amt
-                
+                sol_solp(lyr,j) = sol_solp(lyr,j) - 10. * amt                
               endif
               
               eleaf(j,iel) = eleaf(j,iel) + amt
@@ -1518,13 +1482,12 @@
         
 
     else
-            f_gpp(j) = 0.0
-        do 140 iel = 1, MAXIEL
+        f_gpp(j) = 0.0
+        do 140 iel = 1, MAXIEL !should we change MAXIEL to NL
           eprodfdy(iel) = 0.0
           do 130 ipart = 1, FPARTS
             eup(j,ipart,iel) = 0.0
 130       continue
-
 140     continue
      
     end if        
@@ -1537,8 +1500,7 @@
 !!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   !! calcuate the average temperature of the past 7 days (including current day)
   
-         if (Mod((iyr-1),4) == 0) then 
-          
+        if ((Mod((iyr-1),4) == 0 .and. Mod((iyr-1),100) /= 0) .or. Mod((iyr-1),400) == 0) then           
           yeardays = 366
         else 
           yeardays = 365
@@ -1551,50 +1513,42 @@
      tavgp7d =0.
      tavgp7d = tavgp7d + tavgdate(j,curyr,(dofy))
   
-  do dd = 1, 6
-     if ((dofy-dd ) .gt.0) then
-     
-        tavgp7d = tavgp7d + tavgdate(j,curyr,(dofy-dd))
-        cdd = cdd + 1
-     else if (curyr > 1) then
-        tavgp7d = tavgp7d + tavgdate(j,(curyr-1),(dofy-dd+yeardays))
-        cdd = cdd + 1
-     
-       
-     end if
+     do dd = 1, 6
+         if ((dofy-dd ) .gt.0) then     
+            tavgp7d = tavgp7d + tavgdate(j,curyr,(dofy-dd))
+            cdd = cdd + 1
+         else if (curyr > 1) then
+            tavgp7d = tavgp7d + tavgdate(j,(curyr-1),(dofy-dd+yeardays))
+            cdd = cdd + 1
+         end if
+     end do
   
   
-  end do
-  
-  
-  tavgp7d = tavgp7d / real(cdd+1)   !! need to chedk if this is right
+    tavgp7d = tavgp7d / real(cdd+1)   !! need to chedk if this is right
  
          
 !!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
             do ilyr = 1, 2
-            !! in daycent  swclimit[ilyr] = wiltpt[ilyr] - deltamin; deltamin is an input variable. here we assume it is 0.01cm h20
-            
-            sol_swclimit (ilyr) = sol_wpmm(ilyr,j)*0.1-0.01
-            rel_wc(ilyr) = ((sol_st(ilyr, j)+sol_wpmm(ilyr,j))*0.1/(sol_thick(ilyr)*0.1) - sol_swclimit (ilyr) ) /(sol_fc(ilyr, j)*0.1 + 0.01)     !! equation here are different from that in daycent becasue swat already minus wilting point in sol_st and sol_fc
-            if (rel_wc(ilyr)<0.0) rel_wc(ilyr) = 0.
-            if (rel_wc(ilyr)>1.0) rel_wc(ilyr) = 1.
+            !! in daycent  swclimit[ilyr] = wiltpt[ilyr] - deltamin; deltamin is an input variable. here we assume it is 0.01cm h20            
+                sol_swclimit (ilyr) = sol_wpmm(ilyr,j)*0.1-0.01
+                rel_wc(ilyr) = ((sol_st(ilyr, j)+sol_wpmm(ilyr,j))*0.1/(sol_thick(ilyr)*0.1) - sol_swclimit (ilyr) ) /((sol_fc(ilyr, j)+sol_wpmm(ilyr,j))*0.1 + 0.01)     !! equation here are different from that in daycent becasue swat already minus wilting point in sol_st and sol_fc
+                if (rel_wc(ilyr)<0.0) rel_wc(ilyr) = 0.
+                if (rel_wc(ilyr)>1.0) rel_wc(ilyr) = 1.
             end do
             
             av_rel_wc = (rel_wc(1)*sol_thick(1) +  rel_wc(2)*sol_thick(2))/(sol_thick(1) + sol_thick(2))
             
-           if (av_rel_wc > 1.0)then
-           
-            bgwfunc = 1.0
+           if (av_rel_wc > 1.0)then           
+                bgwfunc = 1.0
            else 
-            bgwfunc = 1.0/(1.0 + 30.0 * exp(-9.0 * av_rel_wc))
-          
+                bgwfunc = 1.0/(1.0 + 30.0 * exp(-9.0 * av_rel_wc))          
            end if
-!!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                  
+        !!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                  
 
-    !! weighted soil average temperature. Daycent only consider two soil layers
+        !! weighted soil average temperature. Daycent only consider two soil layers
 
-      avgstemp = (sol_tmp(1,j)*sol_thick(1)+sol_tmp(2,j)*(sol_thick(2)))/ (sol_thick(1)+sol_thick(2))   !! check. layer depth in swat and daycent are different
-!!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX   
+        avgstemp = (sol_tmp(1,j)*sol_thick(1)+sol_tmp(2,j)*(sol_thick(2)))/ (sol_thick(1)+sol_thick(2))   !! check. layer depth in swat and daycent are different
+        !!XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX   
       
        
        call wdeath(tavgp7d, bgwfunc, tfrac, avgstemp, hrsinc,ldrmlt,mrspweff,tlaypgswat)
@@ -1602,7 +1556,7 @@
         
 !!     return values to SWAT~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
        !! biomass
-       bioday = 10.*f_npp(j)/0.42  !! convert unit from g c/m2 to kg/ha
+       bioday = 10.*f_npp(j)/0.45  !! convert unit from g c/m2 to kg/ha
        bio_ms(j) = bio_ms(j) +  bioday  !! need to double check how bio_ms(j) is calculated from different carbon pools
 !!     !! plant height
        if (matyrsf(idf) > 0) then
@@ -1610,7 +1564,7 @@
        else
               rto = 1.
        end if
-        cht(j) = rto * chtmaxf(idf)
+       cht(j) = rto * chtmaxf(idf)
      
       !! lai
          
@@ -1623,12 +1577,12 @@
       !! if (laiday(j) > lai_yrmx(j)) laiday(j) = lai_yrmx(j) 
      
       !! phu accumulation
-        fdelg = 0.
+        fdelg = 0. ! fraction of degree day accumulated on the specific day
         if (phu_plt(j) > 0.1) then
           fdelg = (tmpav(j) - tbasef(idf)) / phu_plt(j)
         end if
         if (fdelg < 0.) fdelg = 0.
-        phuacc(j) = phuacc(j) + fdelg
+        phuacc(j) = phuacc(j) + fdelg !fraction of accumulated on the specific day
       !! ET
         if (phuacc(j) > 0.5 .and. phuacc(j) < 0.99) then
             plt_et(j) = plt_et(j) + ep_day + es_day
@@ -1640,11 +1594,9 @@
 !!       phuacc(:)
 !!       plt_et(j) = plt_et(j) + ep_day + es_day !! in grow.f, this process is regulated by phenology
 !!        plt_pet(j) = plt_pet(j) + pet_day
-        if (bio_ms(j)>0) then
-!!
+        if (bio_ms(j)>0) then!!
            rwt(j) = (frootjc(j)+frootmc(j)+csrootc(j))/(bio_ms(j)*0.45)
-        else
-        
+        else        
            rwt(j) = 0.
         endif   
 
@@ -1663,7 +1615,7 @@
      !! cal_temp(9) = 0
      
 !! ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~~ ~ ~ ~ ~ ~ ~ ~~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-1099      return
+         return
       end subroutine
 
 !! there should be Nup, Pup and nutriend allocation here

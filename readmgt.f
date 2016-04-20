@@ -377,7 +377,7 @@
 	  icrmx(ihru) = icrmx(ihru) + 1
 	  idplrot(icrmx(ihru),ihru) = ncrp              
 	  mcrhru(ihru) = mcrhru(ihru) + 1
-        curyr_mat(ihru) = mat_yrs(ncrp)
+        curyr_mat(ihru) = mat_yrs(ncrp) !
         !! calculate tnylda for autofertilization 
         if (hvsti(ncrp) < 1.) then
           tnylda(ihru) = 350. * cnyld(ncrp) * bio_e(ncrp)
