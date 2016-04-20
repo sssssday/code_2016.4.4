@@ -104,7 +104,7 @@ c        if ((availm(iel) .le. 1E-10) .and. (snfxmx .eq. 0.0) .and.
           ctob = ctob + (cfrac(ipart) * 2.0)
         endif
 70    continue
-      print *, "aaa"
+      !print *, "aaa"
 !!... Calculate average E/C of whole plant (crop, grass, or tree)
       do 50 iel = 1, tnelem
         minec(iel) = 0.0

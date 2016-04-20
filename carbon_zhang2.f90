@@ -336,27 +336,20 @@
              
              !!  water scale calculation 
              
-             if (k<2) then
-             
-             vmc = wc/sol_z(k,j)
-             
-             else
-             
-              vmc = wc/(sol_z(k,j)-sol_z((k-1),j))
-             
-             end if
-             
+             if (k<2) then             
+                vmc = wc/sol_z(k,j)             
+             else             
+                vmc = wc/(sol_z(k,j)-sol_z((k-1),j))             
+             end if             
                   
              wfp = vmc / sat
              fc_fp = fc / sat
         
 
              if(wfp <= fc_fp)then
-                w_scale = (1-exp(-wfp))/(1-exp(-fc_fp))        
-        
+                w_scale = (1-exp(-wfp))/(1-exp(-fc_fp)) 
              else
                 w_scale = 1.0044 - 0.0044/exp(-5*(wfp - fc_fp)/(sat_fp - fc_fp))
-     
              endif
         
              w_scale = min(1., max(0., w_scale))
@@ -378,7 +371,7 @@
                 
             !!Check added to handle underflow potential in exp intrinsic
                  
-                  rwcf = (wmc-sol_wpmm(k,j)) / (fc-sol_wpmm(k,j))
+                  rwcf = (wmc-sol_wpmm(k,j)) / (fc-sol_wpmm(k,j)) !what is wmc
                   
                   
                   if (rwcf > 13.) then
@@ -395,7 +388,6 @@
           !!           wcalc = 1./(1. + 30.0 * exp(-8.5 * rprpet))
           !!            endif
 
-               
       
                  if (wcalc > 1.0) then
                      wcalc = 1.0

@@ -164,6 +164,7 @@
       j = ihru
       rto = 1.
       
+        !need to move to upper level cycle later
         call pweather !! P parent material weathering
 
         !! plant will not undergo stress if dormant
