@@ -560,7 +560,7 @@
       real, dimension (:), allocatable :: wood2tosom2
       real, dimension (:), allocatable :: wood3tosom1
       real, dimension (:), allocatable :: wood3tosom2
-      
+      real, dimension (:,:), allocatable :: rdis
       integer, dimension (:), allocatable ::tswatlyr
 
 

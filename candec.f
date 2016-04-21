@@ -1,14 +1,14 @@
 
 
-      logical function candec(tnelem,aminrl,tca,elstva,nlr,lyr,rcenew)
+      logical function candec(tnelem,flag,aminrl,tca,tce,rcenew)
 
        use parm
       implicit none
      
 
 !! ...... Argument declarations
-      integer   tnelem, nlr, lyr
-      real      aminrl(MAXIEL), tca, elstva, 
+      integer   tnelem, flag
+      real      aminrl(MAXIEL), tca, tce(flag,MAXIEL), 
      &          rcenew(MAXIEL)
 
 !! ...... Determine if decomposition can occur.
@@ -18,6 +18,7 @@
 !! ......   aminrl      = the sum of the positive layers of minerl before
 !! ......                 uptake by plants
 !! ......   tca         = total C in Box A
+!! ........ tce         nutrients in Box A
 !! ......   elstva      = N, P, and S in Box A by layer and element
 !! ......   nlr         = 1st dimension of elstva... elstva(nlr,3) 
 !! ......   lyr         = layer of Box A (1=surface, 2=soil) 
@@ -34,13 +35,29 @@
 !! ...... is passed into rcenew.
 
 !! ...... Local variables
+      real, dimension(MAXIEL):: elstva 
       integer  iel
       logical  cando(MAXIEL)
-
+      integer j, idf
+      
+      j = 0
+      idf = 0
+    
+ 
+      j = ihru
+      idf = idplt(j)
+      
+      
+      elstva  = 0.
 !! ...... Initialize cando to true for each array location.
       do 5 iel = 1, MAXIEL
         cando(iel) = .true.
 5     continue
+
+      do 6 iel = 1, MAXIEL
+        elstva(iel) = tce(flag,iel)
+6     continue
+
 
 !! ...... For each element (N, P, and S)
       do 10 iel = 1, tnelem
@@ -50,7 +67,7 @@
 
 !! .......... Compare the C/E of new material to the C/E of Box A if C/E of 
 !! .......... Box A > C/E of new material
-          if (tca/elstva .gt. rcenew(iel)) then
+          if (tca/elstva(iel) .gt. rcenew(iel)) then
 
 !! ............ Immobilization is necessary and the stuff in Box A can't 
 !! ............ decompose to Box B.
@@ -63,7 +80,7 @@
 !! ...... proceed even if mineral E (minerl) is driven negative in 
 !! ...... the next time step.
 
-      if (cando(N) .and. cando(P) .and. cando(S)) then
+      if (cando(N) .and. cando(P) ) then
         candec = .true.
       else
         candec = .false.

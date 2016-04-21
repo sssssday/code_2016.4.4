@@ -574,6 +574,7 @@
          wood3tosom2 = 0.
          
          tswatlyr = 0
+         rdis = 0.
          
         DECIDf = 0
         PRDX2f = 0.

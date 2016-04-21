@@ -886,7 +886,7 @@
         allocate (wood3tosom2(mhru))
         allocate (tswatlyr(mhru))
         
-        
+        allocate (rdis(mhru,15))
         
        !!allocate (co2crs(2,2,3))
        allocate (tavgdate(mhru,100,367)) !! second dimension is for year, third is for day

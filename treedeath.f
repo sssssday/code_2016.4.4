@@ -24,7 +24,7 @@
       external  catanf, gpdf, maxswpot
 
 !!.......Local variables
-      integer iel, drpdys, j, idf
+      integer iel, drpdys, j, idf, lyr
       logical drpdlv
       real  accum(ISOS), ctodie, etodie, fr14, recres(MAXIEL),
      &        tostore, srfclittr, soillittr,
@@ -35,6 +35,7 @@
       real :: sitlat
       integer :: month
       integer :: evntyp
+      real, dimension (10):: sl_frootmc, sl_frootjc  !! dead fine root(mature and juvenile)that enter soil litter pool in each soil layer
       
 !!    function declaration
       real daylenth   
@@ -51,6 +52,9 @@
       j = 0
       idf = 0
       
+      
+      sl_frootmc  = 0.0
+      sl_frootjc = 0.0
 
       
       j = ihru
@@ -142,6 +146,14 @@
           endif
 10      continue
 
+
+!! following code should be used to particition leaf fall to surface structure and metbolic litter pools. Need to discuss with Xuesong
+
+
+!! XXXXX         call partit(ctodie, recres, SRFC wdlig(FROOTJ)) !! leaf fall has been substracted from leaf carbon and element pools in previous steps
+
+
+!! currently we do not have such management activities, but may consider to add in case need to harvest leaf in the future. So keep the following codes here.
 !!..... If evntyp is greater than 1 the leaves go to the source/sink
 !!..... rather than to the litter, cak - 02/07/2006
       !! fr14 = rlvcis(LABELD) / rleavc
@@ -151,8 +163,7 @@
          !!         = 2 leaves are removed from system
          
       
-!! XXXXX          call partit(ctodie, recres, 1, rlvcis, rleave, wdlig(LEAF),   !! leaf enters litter pool, not accounted for yet. leaf not removed from leaf pool yet
-!! XXXXX      &                fr14)
+!! XXXXX          call partit(ctodie, recres, 1, leafc, rleave, wdlig(LEAF))
        
 !! XXXXX           call csched(ctodie, fr14, 1.0,
 !! XXXXX     &                rlvcis(UNLABL), csrsnk(UNLABL),
@@ -233,17 +244,34 @@
         srfclittr = ctodie * WRDSRFCf(idf)
         soillittr = ctodie - srfclittr
         frootjc(j) = frootjc(j) - ctodie
+        
+!! distribute total soil litter from juvenile fine root to each soil layer based on the root fraction
+     
+      do lyr = 2, sol_nly(j)
+     
+         sl_frootjc(lyr) = rdis(j,lyr) * soillittr
+         
+ !! need to call the partition function here. check with xuesong later
+ 
+ !! XXXXX         call partit(sl_frootjc(lyr), recres, SOIL,  wdlig(FROOTJ))        
+         
+      end do   
+        
+        
     !! check nutrient out    
         do 21 iel = 1, nelem
           etodie = ctodie * (efrootj (j,iel)  / frootjc(j))
           efrootj (j,iel) = efrootj (j,iel) - etodie
  
 21        continue
+
+
+
         
-!! XXXXX         call partit(srfclittr, recres, SRFC, frtcisj, frootej,  !! not account for yet, need to discuss with xuesong
-!! XXXXX      &              wdlig(FROOTJ), fr14)
-!! XXXXX         call partit(soillittr, recres, SOIL, frtcisj, frootej,   !! nor account for yet
-!! XXXXX      &              wdlig(FROOTJ), fr14)
+!! XXXXX         call partit(srfclittr, recres, SRFC,  !! not account for yet, need to discuss with xuesong
+!! XXXXX      &              wdlig(FROOTJ))
+!! XXXXX         call partit(soillittr, recres, SOIL,   !! nor account for yet
+!! XXXXX      &              wdlig(FROOTJ))
       endif
 
 !!.......Death of mature fine roots
@@ -263,6 +291,19 @@
         do 26  iel = 1, nelem
           etodie = ctodie * (efrootm (j,iel)  / frootmc(j))
           efrootm (j,iel) = efrootm (j,iel) - etodie
+          
+ !! distribute total soil litter from mature fine root to each soil layer based on the root fraction         
+          
+      do lyr = 2, sol_nly(j)
+     
+         sl_frootmc(lyr) = rdis(j,lyr) * soillittr
+         
+ !! need to call the partition function here. check with xuesong later
+ 
+ !! XXXXX         call partit(sl_frootmc(lyr), recres, SOIL,  wdlig(FROOTJ))        
+         
+      end do   
+              
  
 26        continue
 !! XXXXX         call partit(srfclittr, recres, SRFC, frtcism, frootem,    !! not account for yet, need to discuss with xuesong

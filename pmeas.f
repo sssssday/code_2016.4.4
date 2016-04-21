@@ -135,7 +135,7 @@
           
           inum3sprev = 0
           do k = 1, nhru
-            subp(k) = rmeas(irgage(hru_sub(k)))+ 2.  !! qichun,double precipition 
+            subp(k) = rmeas(irgage(hru_sub(k))) !! qichun,double precipition 
             !! generate data to replace missing values
             if (subp(k) < -97.) then
               !! use same generated data for all HRUs in a subbasin
@@ -263,9 +263,9 @@
           !! missing precipitation data cannot be generated for 
           !! sub-daily simulation
           do k = 1, nhru
-            subp(k) = rmeas(irgage(hru_sub(k)))*0.01 !! qichun
+            subp(k) = rmeas(irgage(hru_sub(k))) !! qichun
             do ii = 1, nstep
-              rainsub(k,ii) = rainsb(irgage(hru_sub(k)),ii)* 0.01 !! qichun
+              rainsub(k,ii) = rainsb(irgage(hru_sub(k)),ii) !! qichun
             end do
             !! generate data to replace missing values
             if (subp(k) < -97.) then
