@@ -301,12 +301,13 @@
 !! ......Use soil decomposition ratios, MDH Nov 2012
 
       !!availabel nutrient for litter in soils
+      aminrl = 0.
       
       do lyr = 2, sol_nly(j)
       
-       aminrl (N) = (sol_no3(lyr,j) + sol_nh3(lyr,j))/10. !! P and S are not accounted for yet here we assume that mineral N are stored in the first three layers.
+       aminrl (N) = aminrl (N) + (sol_no3(lyr,j) + sol_nh3(lyr,j))/10. 
        
-       aminrl (P) = sol_solp(lyr,j) / 10.
+       aminrl (P) = aminrl (P) + sol_solp(lyr,j) / 10.
      
       end do  
 
