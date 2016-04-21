@@ -2,13 +2,6 @@
      
       subroutine declig(flag, aminrl,ligcon,lyr,tnelem,nlr,ps1co2,rnew,
      &                  rsplig,tcflow)
-   !!  ,
-   !!   &                  gromin,minerl,netmnr,resp,som1ci,som1e,
-   !!  &                  som2ci,som2e,cflowtosom1,cflowtosom2,newminrl)
-
-
-
-
 
       use parm
       
@@ -17,7 +10,9 @@
       integer j, idf
       
 
-      integer   lyr, tnelem, nlr, flag
+      integer   lyr, tnelem, nlr, flag  !! flag=1: wood1 (branch) pools; flag = 2:wood2 (large wood) pools; flag = 3:wood3 (coarse root) pools; 
+        
+      
       real      aminrl(MAXIEL), ligcon, ps1co2(2), rnew(MAXIEL,2),
      &          rsplig, tcflow, tcstva(nlr), 
      &          cstatv(nlr,ISOS), elstva, gromin(MAXIEL),
@@ -92,10 +87,13 @@
       external  candec
 
 !! ...... Local variables
-      integer   iel, actlyr, llyr
+      integer   iel, actlyr, llyr, sollyr
       !!! integer   idf
       real      accum, co2los, mnrflo, tosom1, tosom2,
      &          rnew1(MAXIEL)
+     
+      real      boxa_ele(flag, MAXIEL) !! element in the 3 woody debris pools
+      real, dimension (10):: tosom1_wood3,tosom2_wood3
        
      !! integer lyrr 
      
@@ -111,7 +109,10 @@
       !!lyrr = 0
       rnew1 = 0.
       
-
+      boxa_ele = 0.
+      
+      tosom1_wood3 = 0.
+      tosom2_wood3 = 0.
 !! ...... actlyr (actual layer) is used when coarse roots are decomposed.
 !! ...... In this case lyr = 2 and nlr = 1.  An error results when
 !! ...... tcstva(lyr) is accessed because tcstva is dimensioned with nlr.
@@ -134,10 +135,15 @@
 !! ...... If it can go to som1, it will also go to som2.
 !! ...... If it can't go to som1, it can't decompose at all.
 
+      do 6 iel = 1, MAXIEL
+        boxa_ele(flag,iel) = woode(j,flag,iel)
+6     continue
+
+
 !! ...... If Box A can decompose
 
-      if (candec(tnelem,aminrl,woodc(j,flag),woode(j,flag,1),nlr,
-     &           llyr,rnew1)) then
+      if (candec(tnelem,flag,aminrl,woodc(j,flag),boxa_ele,
+     &           rnew1)) then
 
 !! ........         Decompose Box A to SOM2
 !! ........         -----------------------
@@ -151,11 +157,30 @@
 
 !! ........ Net C flow to SOM2
         tosom2 = tosom2 - co2los
-        cflowtosom2 = tosom2        !! not accounted for yet
+        cflowtosom2 = tosom2        !! not accounted for yet, need to with Xuesong
 
 !! ........ Partition and schedule C flows by isotope
 
        woodc(j,flag) =  woodc(j,flag) - tosom2
+       
+       
+       if (flag ==3) then
+       
+       
+         do sollyr = 2, sol_nly(j)
+         
+         
+         tosom2_wood3(sollyr) = rdis(j,sollyr)*tosom2
+         
+          !! XXX need to add this flux to som2 in each soil layer here
+         
+         end do
+       
+              
+       end if
+       
+       
+       
         !!XXXXXXXXX sink not accounted yet
 !!        call csched(tosom2,cstatv(llyr,LABELD),tcstva(llyr),
 !!     &              cstatv(llyr,UNLABL),som2ci(actlyr,UNLABL),
@@ -198,6 +223,25 @@
 !! ........ Partition and schedule C flows by isotope
 
           woodc(j,flag) =  woodc(j,flag) - tosom1
+          
+                 
+       if (flag ==3) then
+       
+       
+         do sollyr = 2, sol_nly(j)
+         
+         
+         tosom1_wood3(sollyr) = rdis(j,sollyr)*tosom1
+         
+        !! XXX need to add this flux to som1 in each soil layer here
+        
+         end do
+       
+              
+       end if
+       
+          
+          
           !!XXXXXXXXX sink not accounted yet
  !!       call csched(tosom1,cstatv(llyr,LABELD),tcstva(llyr),
  !!    &              cstatv(llyr,UNLABL),som1ci(actlyr,UNLABL),

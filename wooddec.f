@@ -51,6 +51,7 @@
       real      varat22(3,3)
       real      rsplig
       real      anerb
+     
   !! function declaration
       real      agdrat, bgdrat, anerob    
       integer   iel
@@ -108,6 +109,8 @@
       
       rsplig = 0.3
       
+
+      
       do lyr = 1, sol_nly(j)
         
            if (lyr == 1) then
@@ -132,9 +135,9 @@
         !! Compute water effect for surface decomposition using the */
         !! top soil layer (first layer)
        swclimit = sol_wpmm(1,j)*0.1-0.01
-       rel_wc = (sol_st(1,j)*0.1)/(sol_thick(1)*0.1) -
+       rel_wc = ((sol_st(1,j) + sol_wpmm(1,j))*0.1)/(sol_thick(1)*0.1) -
      &                    swclimit/
-     &                  (sol_fc(1, j)*0.1 + 0.01)
+     &                  ((sol_fc(1, j)+sol_wpmm(1,j))*0.1 + 0.01)
                        
       if (rel_wc > 1.0) then
             agwfunc = 1.0
@@ -148,39 +151,14 @@
       do lyr = 2, 3  !! check, what if there are less than 3 layers
  !!    average relative water content
         
-       rel_wc = (sol_thick(lyr)*0.1)/(sol_thick(lyr)*0.1) -
-     &                    swclimit/
-     &                  (sol_thick(lyr)*0.1 + 0.01)
+       rel_wc = ((sol_st(lyr,j) + sol_wpmm(lyr,j))*0.1)/(sol_thick(lyr)
+     &                    *0.1) -(sol_wpmm(lyr,j)*0.1-0.01)/
+     &                  ((sol_fc(lyr, j)+sol_wpmm(lyr,j))*0.1 + 0.01)
  
-       avg_rel_wc = avg_rel_wc + rel_wc
+       avg_rel_wc = avg_rel_wc + rel_wc*sol_thick(lyr)*0.1 
        
                        
        end do
-      !! calculate mineralize nutrient 
-       
-       
-       !!availabel nutrient for surface litter
-      
-       
-       aminrl (N) = (sol_no3(1,j) + sol_nh3(1,j))/10. !! P and S are not accounted for yet here we assume that mineral N are stored in the first three layers.
-       
-    
-       
-       
-       
-!! ... Determine C/E ratios for flows from structural material to
-!! ... surface som1 and surface som2
-!! ... The second index of ratnew(iel,*) should be 1 or 2
-!! ... (not SRFC or SOIL) for som1c or som2c. -MDH 1/23/2012
-!! ... Create ratnew1 and ratnew2 for surface and soil. -MDH 9/24/2012
-      do 30 iel=1,nelem
-!! ..... ratnew1: SRFC som1 and som2
-        ratnew1(iel,1) = agdrat(aminrl,varat11,iel)
-        ratnew1(iel,2) = agdrat(aminrl,varat21,iel)
-!! ..... ratnew2: SOIL som1 and som2
-        ratnew2(iel,1) = bgdrat(aminrl,varat12,iel)
-        ratnew2(iel,2) = bgdrat(aminrl,varat22,iel)
-30    continue
 
        
       !! calculate et related variables
@@ -206,7 +184,8 @@
         agdefac = max(0.000001, tfunc * agwfunc)
       endif
       
-      
+ 
+       
       !! calculate belowground scaler
       !! bgdefac = max(0.000001, tfunc **bgwfunc*krainwfunc) !! this is the original function, but do not know what is krainwfunc
        bgdefac = max(0.000001, tfunc **bgwfunc)
@@ -226,6 +205,34 @@
         pheff = 0.5 + (1.1/DPI)*atan(DPI*0.7*(ph-4))
         pheff = min(pheff, 1.0)
         pheff = max(pheff, 0.0)
+        
+        
+      !! calculate mineralize nutrient 
+       
+       
+       !!availabel nutrient for surface litter
+      
+       
+       aminrl (N) = (sol_no3(1,j) + sol_nh3(1,j))/10. !! P and S are not accounted for yet here we assume that mineral N are stored in the first three layers.
+       
+       aminrl (P) = sol_solp(1,j) / 10.
+       
+       
+       
+!! ... Determine C/E ratios for flows from structural material to
+!! ... surface som1 and surface som2
+!! ... The second index of ratnew(iel,*) should be 1 or 2
+!! ... (not SRFC or SOIL) for som1c or som2c. -MDH 1/23/2012
+!! ... Create ratnew1 and ratnew2 for surface and soil. -MDH 9/24/2012
+      do 30 iel=1,nelem
+!! ..... ratnew1: SRFC som1 and som2
+        ratnew1(iel,1) = agdrat(aminrl,varat11,iel)
+        ratnew1(iel,2) = agdrat(aminrl,varat21,iel)
+!! ..... ratnew2: SOIL som1 and som2
+        ratnew2(iel,1) = bgdrat(aminrl,varat12,iel)
+        ratnew2(iel,2) = bgdrat(aminrl,varat22,iel)
+30    continue
+        
 
 !! ......Compute total C flow out of fine branches
 !! ......Add pH effect on decomposition to calculation, cak - 08/02/02
@@ -294,7 +301,14 @@
 !! ......Use soil decomposition ratios, MDH Nov 2012
 
       !!availabel nutrient for litter in soils
-
+      
+      do lyr = 2, sol_nly(j)
+      
+       aminrl (N) = (sol_no3(lyr,j) + sol_nh3(lyr,j))/10. !! P and S are not accounted for yet here we assume that mineral N are stored in the first three layers.
+       
+       aminrl (P) = sol_solp(lyr,j) / 10.
+     
+      end do  
 
 
         call declig(3,aminrl,WDLIGf(idf,CROOT),SOIL,nelem,1,ps1co2,

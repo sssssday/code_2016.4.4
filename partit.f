@@ -1,5 +1,5 @@
 
-      subroutine partit(cpart,recres,lyr,cdonor,edonor,frlign)
+      subroutine partit(cpart,recres,lyr,frlign)
 
 
       use parm
@@ -11,7 +11,7 @@
 
 !! ...... Argument declarations
       integer lyr
-      real    cpart, recres(MAXIEL), cdonor(ISOS), edonor(MAXIEL), 
+      real    cpart, recres(MAXIEL), !! cdonor(ISOS), edonor(MAXIEL), 
      &        frlign, friso
 
 !! ...... Partition residue from compartments cdonor and edonor
@@ -189,10 +189,10 @@
 
 
 !! ........ Carbon added to metabolic
-           cdonor = cdonor -caddm     !! carbon transfer from donor to metobalic pool
+        !!   cdonor = cdonor -caddm     !! carbon transfer from donor to metobalic pool
            metcis = metcis + caddm
 
-           cdonor = cdonor -cadds     !! carbon transfer from donor to metobalic pool
+         !!  cdonor = cdonor -cadds     !! carbon transfer from donor to metobalic pool
            strcis = strcis + cadds
 
    
@@ -207,12 +207,12 @@
 !! ........ Flow into structural
         eadds = cadds/rcestr(iel)
        !! call flow(edonor(iel),struce(lyr,iel),time,eadds)
-         edonor(iel) = edonor(iel) - eadds
+       !!  edonor(iel) = edonor(iel) - eadds
          struce(lyr,iel) = struce(lyr,iel) + eadds
 !! ........ Flow into metabolic
         eaddm = epart(iel)+dirabs(iel)-eadds
        !! call flow(edonor(iel),metabe(lyr,iel),time,eaddm)
-        edonor(iel) = edonor(iel) - eaddm
+        !! edonor(iel) = edonor(iel) - eaddm
         metabe(lyr,iel) = metabe(lyr,iel) + eaddm
         
         

@@ -82,12 +82,20 @@ c ...
       do 10 iel = 1, nelem
         mnrflo = co2los*woode(j,flag,iel)/woodc(j,flag)
         woode(j,flag,iel) = woode(j,flag,iel) - mnrflo
-        
-        sol_no3 (lyr,j) = sol_no3 (lyr,j) +  mnrflo  
+       
+        if (iel == N) then
+          sol_no3 (lyr,j) = sol_no3 (lyr,j) +  mnrflo  
      &    * 10. /(sol_no3 (lyr,j) + sol_nh3 (lyr,j) )
         
-         sol_nh3 (lyr,j) = sol_nh3 (lyr,j) +  mnrflo * 10. / 
+          sol_nh3 (lyr,j) = sol_nh3 (lyr,j) +  mnrflo * 10. / 
      &    (sol_no3 (lyr,j) + sol_nh3 (lyr,j) )
+     
+        else 
+          sol_solp(lyr,j) = sol_solp(lyr,j) + mnrflo * 10.
+        
+        !!zXXXXXX add P code here
+       
+        end if
         
         
        !! call flow(estatv(lyr,iel),minerl(SRFC,iel),time,mnrflo)

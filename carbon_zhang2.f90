@@ -361,26 +361,26 @@
      !! qichun code from century ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      
           !! temperature effects
-          tcalc = 0.
-          wcalc = 0.
+     !!     tcalc = 0.
+      !!    wcalc = 0.
           
-          tcalc = 0.0 + 0.125 * exp(0.07 * sol_tmp(k,j))
+      !!    tcalc = 0.0 + 0.125 * exp(0.07 * sol_tmp(k,j))
        
           !! water effects
           
                 
             !!Check added to handle underflow potential in exp intrinsic
                  
-                  rwcf = (wmc-sol_wpmm(k,j)) / (fc-sol_wpmm(k,j)) !what is wmc
+     !!             rwcf = (wmc-sol_wpmm(k,j)) / (fc-sol_wpmm(k,j)) !what is wmc
                   
                   
-                  if (rwcf > 13.) then
-	                wcalc = 1.
-                  else
-                    wcalc = 1./(1. + 4.0 * exp(-6.0*rwcf))
-                  endif
+    !!              if (rwcf > 13.) then
+	!!                wcalc = 1.
+    !!              else
+    !!                wcalc = 1./(1. + 4.0 * exp(-6.0*rwcf))
+   !!               endif
 
-                rprpet = (precipday+ sol_st(1,j)+sol_st(2,j))/pet_day
+                
           !!Check added to handle underflow potential in exp intrinsic
 	      !!            if (rprpet > 9.0) then
 	      !!            wcalc = 1.
@@ -389,9 +389,8 @@
           !!            endif
 
       
-                 if (wcalc > 1.0) then
-                     wcalc = 1.0
-                 endif
+      !!           if (wcalc > 1.0) wcalc = 1.0
+                
      
      
       !! qichun code from century~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~       
@@ -402,7 +401,9 @@
              
               !! compute combined factor
 		      CS = 0.
-		      CS=MIN(10.,SQRT(cdg*sut)*0.9*OX*X1)              
+		      CS=MIN(10.,SQRT(cdg*sut)*0.9*OX*X1)     
+		      
+		               
                !! call denitrification (to use void and cdg factor)
                 wdn = 0.
                 cdg = fcgd(sol_tmp(k,j))

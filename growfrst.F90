@@ -90,7 +90,7 @@
         real :: atemp, stemp
         integer :: dumsun, dumsha
          real :: n11, n22, n33, n44, n55, n66, n77, n88, n99, n1010
-        real, dimension (20):: rdis, prdis, solm_potsat, solm_pot, sol_sita_sat, sol_wet, fclay, sol_w
+        real, dimension (20):: prdis, solm_potsat, solm_pot, sol_sita_sat, sol_wet, fclay, sol_w
         real :: sshade, ssun
         real :: leaf_cn
         real :: maxleafc
@@ -155,6 +155,7 @@
        real :: toler
        real :: calcup
        real :: sol_thick(sol_nly(ihru))
+       real :: ttrdis
        
  !!    declare function type
        real maxswpot, line, daylenth, rtimp, leafa
@@ -216,6 +217,7 @@
          av_rel_wc = 0.
          sol_swclimit = 0.
          cprodfdy = 0.
+         ttrdis = 0.
          
      !! calculate how many days are there in a month    
          
@@ -283,6 +285,26 @@
           ccefor(IMAX,ipart,iel) = CERFORf(idf,IMAX,ipart,iel)
 40      continue 
 50    continue
+
+
+      !!calculate root distribution. do not need to calculate everyday, so moved to the first day cycle
+      tmoist = 0. 
+
+       do lyr = 2, sol_nly(j)
+       
+        if (lyr<sol_nly(j)) then 
+           !prdis: percentage root distribution for a specific layer
+           prdis(lyr) = 0.5*(exp(-raf(idf)*sol_z(lyr-1,j)/1000.)+exp(-rbf(idf)*sol_z(lyr-1,j)/1000.)-exp(-raf(idf)*sol_z(lyr,j)/1000.) &
+                -exp(-rbf(idf)*sol_z(lyr,j)/1000.))
+        else
+           prdis(lyr) = 0.5*(exp(-raf(idf)*sol_z(lyr-1,j)/1000.)+exp(-rbf(idf)* sol_z(lyr-1,j)/1000.))       
+        end if        
+        ttrdis = ttrdis + prdis(lyr)
+       end do
+       
+       do lyr = 2, sol_nly(j)
+           rdis(j,lyr) = prdis(lyr) / ttrdis 
+       end do
 
     endif    !end dofy
 
@@ -460,27 +482,9 @@
       
        !!calcualte fmoist
 
-
-        
-
-
-      !!calculate root distribution
-      tmoist = 0.
-
-       do lyr = 2, sol_nly(j)
-       
-        if (lyr<sol_nly(j)) then 
-           !prdis: percentage root distribution for a specific layer
-           prdis(lyr) = 0.5*(exp(-raf(idf)*sol_z(lyr-1,j)/1000.)+exp(-rbf(idf)*sol_z(lyr-1,j)/1000.)-exp(-raf(idf)*sol_z(lyr,j)/1000.) &
-                -exp(-rbf(idf)*sol_z(lyr,j)/1000.))
-        else
-           prdis(lyr) = 0.5*(exp(-raf(idf)*sol_z(lyr-1,j)/1000.)+exp(-rbf(idf)* sol_z(lyr-1,j)/1000.))       
-        end if        
-        rdis(lyr) = prdis(lyr)
-       end do
        
        do lyr = 2, sol_nly(j)        
-            tmoist = tmoist + rdis(lyr)* sol_w(lyr)        
+            tmoist = tmoist + rdis(j,lyr)* sol_w(lyr)        
        end do
        
        if (tmoist < 1.e-10)tmoist = 1.e-10  
