@@ -22,21 +22,21 @@
 !! ...... friso is the fraction of cpart which is labeled.
 
 !! ...... Local variables
-      integer   iel, clyr
+      integer   iel, 
       real      accum, caddm, cadds, dirabs(MAXIEL),
      &          eaddm, eadds, epart(MAXIEL),
      &          fligst, frmet, frn, rcetot, rlnres, delin,
      &          dellig, c13c12r, c13frac, c13lig, c13nlig,
      &          c13struc, c12struc, c13met, c12met
       real      namt
-      real      no3nh4suf, no3nh4sol
+      real      no3nh4
       double precision frac_nh4, frac_no3
       character subname*10
       real      damr(2,3)
       real      pabres
       real      damrmn (3)
-      real      frac_nh4suf, frac_no3suf
-      real      frac_nh4sol, frac_no3sol
+      !!real      frac_nh4suf, frac_no3suf
+      !!real      frac_nh4sol, frac_no3sol
       real      spl(2)
       
    !!  fake variables defined here to explain the patition process to xuesong. Real varialbes need to be find from xuesong's soc process
@@ -56,21 +56,19 @@
       j = ihru
       idf = idplt(j)
       
-      rcestr = 1. !! give fake values to this array
+      rcestr = 1. !! give fake values to this array, SWAT should have have this variable. Need to check with Xuesong 
       
-      no3nh4suf = sol_no3(1,j) + sol_nh3(1,j)  !! need to account for P later
-      no3nh4sol = sol_no3(2,j) + sol_nh3(2,j)
+      no3nh4 = sol_no3(lyr,j) + sol_nh3(lyr,j)  !! daycent only consider impacts of nitrogen
       
       
-      frac_nh4suf = sol_nh3(1,j) / no3nh4suf
-      frac_no3suf = 1 - frac_nh4suf
-      frac_nh4sol = sol_nh3(2,j) / no3nh4sol 
-      frac_no3sol = 1 - frac_nh4sol 
-     
+      
+      frac_nh4 = sol_nh3(lyr,j) / no3nh4
+      frac_no3 = 1 - frac_nh4
+
       accum = 0.0
       
       damr(1,1) = 0.00000           
-      damr(1,3) = 0.00000           
+      damr(1,2) = 0.00000           
       damr(1,3) = 0.01000          
       damr(2,1) = 0.02000           
       damr(2,2) = 0.02000           
@@ -93,7 +91,7 @@
 
 
 !! ...... For each mineral element...
-      do 10 iel = 1, nelem
+      do 10 iel = 1, 1 !! only consider N here
 
 !! ........ Compute amount of element in residue.
         epart(iel) = cpart * recres(iel)
@@ -105,10 +103,10 @@
 
 !! ........ If minerl(SRFC,iel) is negative then dirabs = zero.
 
-        if (no3nh4suf .lt. 0.) then
+        if (no3nh4.lt. 0.) then
           dirabs(iel) = 0.0
         else
-          dirabs(iel)=damr(lyr,iel)*no3nh4suf*
+          dirabs(iel)=damr(lyr,iel)*0.1*no3nh4*
      &                amax1(cpart/pabres,1.)
         endif
 
@@ -129,20 +127,13 @@
         
         if (iel .eq. N) then
           namt = -1.0*dirabs(iel)
-          clyr = 1
-         !! call cmpnfrac(clyr,ammonium,nitrate,minerl,frac_nh4,frac_no3)
-         !! call update_npool(clyr, namt, frac_nh4, frac_no3, ammonium,
-    !! &                      nitrate, subname)
-    
-    
-       !! for this part, daycent have very complicated processes. we assume nutrient exchange between soil and detritus only occure between litter and the first soil layer    
-    
-    
-        sol_no3 (1,j) = sol_no3 (1,j) - namt * frac_no3suf 
-        sol_nh3 (1,j) = sol_nh3 (1,j) - namt * frac_nh4suf 
+          
+   
+        sol_no3 (lyr,j) = sol_no3 (lyr,j) - 10.*namt * frac_no3 
+        sol_nh3 (lyr,j) = sol_nh3 (lyr,j) - 10.*namt * frac_nh4 
     
         endif
-        !! call flow(minerl(1,iel),edonor(iel),time,dirabs(iel))
+      
 10    continue
 
 !! ...... Partition carbon into structural and metabolic fraction of
@@ -162,7 +153,7 @@
         frmet = (1.0 - frlign)
       endif
 
-!! ...... Make sure at least 1% goes to metabolic
+!! ...... Make sure at least 20% goes to metabolic
       if (frmet .lt. 0.20) then
         frmet = .20
       endif
@@ -185,15 +176,16 @@
          fligst = 1.0
       endif
 
-!! ...... Determine what type of labeling is to be done
+c ... Adjust lignin
+!!XXXXX      call adjlig(strcis,fligst,cadds,strlig(lyr))   !! need to check with Xuesong if this process is needed, the key is if SWAT has a lignin fraction for the structural pool
 
 
 !! ........ Carbon added to metabolic
-        !!   cdonor = cdonor -caddm     !! carbon transfer from donor to metobalic pool
-           metcis = metcis + caddm
 
-         !!  cdonor = cdonor -cadds     !! carbon transfer from donor to metobalic pool
-           strcis = strcis + cadds
+           metcis = metcis + caddm   !! need to be changed according to SWAT setting
+
+
+           strcis = strcis + cadds   !! need to be changed according to SWAT setting
 
    
        

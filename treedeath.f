@@ -147,11 +147,6 @@
 10      continue
 
 
-!! following code should be used to particition leaf fall to surface structure and metbolic litter pools. Need to discuss with Xuesong
-
-
-!! XXXXX         call partit(ctodie, recres, SRFC wdlig(FROOTJ)) !! leaf fall has been substracted from leaf carbon and element pools in previous steps
-
 
 !! currently we do not have such management activities, but may consider to add in case need to harvest leaf in the future. So keep the following codes here.
 !!..... If evntyp is greater than 1 the leaves go to the source/sink
@@ -163,13 +158,7 @@
          !!         = 2 leaves are removed from system
          
       
-!! XXXXX          call partit(ctodie, recres, 1, leafc, rleave, wdlig(LEAF))
-       
-!! XXXXX           call csched(ctodie, fr14, 1.0,
-!! XXXXX     &                rlvcis(UNLABL), csrsnk(UNLABL),
-!! XXXXX      &                rlvcis(LABELD), csrsnk(LABELD),
-!! XXXXX      &                1.0, accum)
-     
+
      
      
           do 15 iel = 1, nelem
@@ -184,6 +173,14 @@
           endif  
 15        continue
         
+!! following code should be used to particition leaf fall to surface structure and metbolic litter pools. Need to discuss with Xuesong
+!! ctodie: dead carbon from leaf
+!! recres: matix storing element:carbon ratio
+!! SRFC: indicating where litter fall to, surface (SRFC =1) or belowground (SOIL = 2).
+
+!! XXXXX         call partit(ctodie, recres, SRFC, WDLIGf(idf,LEAF)) !! leaf fall has been substracted from leaf carbon and element pools in previous steps
+
+
 
 
 !!.......Add code to age fine roots, juvenile fine roots age to the mature
@@ -252,8 +249,9 @@
          sl_frootjc(lyr) = rdis(j,lyr) * soillittr
          
  !! need to call the partition function here. check with xuesong later
+ !!      sl_frootjc(lyr):: litter from juvenil fine root distributed to each layer
  
- !! XXXXX         call partit(sl_frootjc(lyr), recres, SOIL,  wdlig(FROOTJ))        
+ !! XXXXX         call partit(sl_frootjc(lyr), recres, lyr, WDLIGf(idf,FROOTJ))        
          
       end do   
         
@@ -265,13 +263,8 @@
  
 21        continue
 
+   
 
-
-        
-!! XXXXX         call partit(srfclittr, recres, SRFC,  !! not account for yet, need to discuss with xuesong
-!! XXXXX      &              wdlig(FROOTJ))
-!! XXXXX         call partit(soillittr, recres, SOIL,   !! nor account for yet
-!! XXXXX      &              wdlig(FROOTJ))
       endif
 
 !!.......Death of mature fine roots
@@ -299,8 +292,9 @@
          sl_frootmc(lyr) = rdis(j,lyr) * soillittr
          
  !! need to call the partition function here. check with xuesong later
+ !! sl_frootmc(lyr): litter from mature fine root distributeed to each soil layer
  
- !! XXXXX         call partit(sl_frootmc(lyr), recres, SOIL,  wdlig(FROOTJ))        
+ !! XXXXX         call partit(sl_frootmc(lyr), recres, lyr,  WDLIGf(idf,FROOTJ))        
          
       end do   
               
