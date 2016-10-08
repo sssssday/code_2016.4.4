@@ -75,10 +75,10 @@
         !! real :: m_respire
         real :: phe_stg !! phenology stage
         integer :: get_stage
-        real :: cal_phen
+        real :: cal_phen   !! calculate phenology
         !!real :: alloc
         real :: get_nitrogen
-        real :: day_stage, day_phen
+        real :: day_stage, day_phen 
          real :: dmaxleafc
         real :: ttemp
         real :: tleafc, tbrchc, tfrootjc,tfrootmc,tcsrootc, tseedc, tinic
@@ -89,11 +89,11 @@
         real :: fdelg
         real :: atemp, stemp
         integer :: dumsun, dumsha
-         real :: n11, n22, n33, n44, n55, n66, n77, n88, n99, n1010
+         real :: n11, n22, n33, n44, n55, n66, n77, n88, n99, n1010 
         real, dimension (20):: prdis, solm_potsat, solm_pot, sol_sita_sat, sol_wet, fclay, sol_w
         real :: sshade, ssun
-        real :: leaf_cn
-        real :: maxleafc
+        real :: leaf_cn  !! leaf cn ratio
+        real :: maxleafc  !! maximum leaf carbon
         integer :: count
         integer :: iptr !! variable used to determine whether tree is juvenile or mature
         real :: mrspteff !! temperature effect on maintenance respiration
@@ -127,39 +127,39 @@
         real, dimension(2,6,2)::ccefor 
        real ::riint
        real :: rictrl
-       real :: treeNfix
+       real :: treeNfix  !! n fixation
        real :: relyld !! fraction of actural and potential production
        real :: elimit !! id of element that is limiting growth
        real, dimension(4,MAXIEL):: uptake
        real, dimension (FPARTS) :: euf
        real :: amt, namt !! nutrient uptake temperory variable
        real :: fsol
-       real :: fno3, fnh3, tno3nh3
+       real :: fno3, fnh3, tno3nh3   !! fraction of nh4 and no3
        real :: tavewk !! average temperature for the last seven days
-       real :: lfncon
+       real :: lfncon  !! leaf nitrogen
        real :: lfncmin
        real :: lfncmax
-       real :: ldrmlt
+       real :: ldrmlt  !! leaf death rate multiplier
        real :: tavgp7d !! average temperature of the past 7 days
        integer :: dd, cdd !! day counter
-       integer :: yeardays 
-       real :: avgstemp
+       integer :: yeardays !! days in each year
+       real :: avgstemp !! average temperature
        real :: bgwfunc
        integer :: ilyr
-       real,dimension (10) :: rel_wc
+       real,dimension (10) :: rel_wc !! relative water content
        real :: av_rel_wc
-       real,dimension (10) :: sol_swclimit 
+       real,dimension (10) :: sol_swclimit  !! soil water limit
        integer :: iel, lyr
        
-       real,dimension (6) :: mfprd
+       real,dimension (6) :: mfprd  !! new carbon allocated to each pool
        real :: toler
-       real :: calcup
-       real :: sol_thick(sol_nly(ihru))
-       real :: ttrdis
+       real :: calcup  !! nutrient uptake from soil
+       real :: sol_thick(sol_nly(ihru)) !! thickness of each soil layer
+       real :: ttrdis   !! temporary variable,
        
  !!    declare function type
        real maxswpot, line, daylenth, rtimp, leafa
-       integer grochk
+       integer grochk   !! check if plant is growing
        integer tdays !! days in one month
        
       !!data growday /0/
@@ -775,7 +775,7 @@
         riint = 0.8 !
         rictrl = 0.015 !
 
-      rimpct = rtimp(riint, rictrl, frootjc(j)+frootmc(j)) !root impact on 
+      rimpct = rtimp(riint, rictrl, frootjc(j)+frootmc(j)) !root impact on allocation
 
 
     if (decidgrow) then
